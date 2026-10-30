@@ -122,7 +122,7 @@ ldd demo_shared | grep cppgis
 
 ### 预期输出
 
-两种链接方式输出一致：
+Linux / Windows、静态 / 动态链接的输出都一致：
 
 ```
 POINT (3 4)
@@ -134,17 +134,41 @@ POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))
   area = 96, perimeter = 48, valid = true
 ```
 
-### Windows (MSVC)
+### Windows (MSVC)：命令行
 
-代码相同，只改项目设置：
+在 **x64 Native Tools Command Prompt for VS** 中执行。代码与 Linux 完全相同。
+因为预编译产物是 Debug 版，客户端也要用 `/MDd` 保持运行库一致。
+
+静态链接：
+
+```bat
+cl /nologo /std:c++17 /EHsc /MDd /I "dist\windows-x86_64\include" ^
+   demo.cpp "dist\windows-x86_64\libcppgis.lib" /Fe:demo_static.exe
+demo_static.exe
+```
+
+动态链接：
+
+```bat
+cl /nologo /std:c++17 /EHsc /MDd /I "dist\windows-x86_64\include" ^
+   demo.cpp "dist\windows-x86_64\生成动态库.lib" /Fe:demo_shared.exe
+copy /Y "dist\windows-x86_64\生成动态库.dll" .
+demo_shared.exe
+```
+
+- `/I`：头文件目录
+- `/MDd`：使用 Debug 版 C 运行库，与预编译库匹配
+- `生成动态库.lib` 只是导入库，程序运行还需要 `生成动态库.dll`；放在 exe 同目录即可
+- 可用 `dumpbin /dependents demo_shared.exe` 查看运行时依赖
+
+### Windows (MSVC)：Visual Studio 项目
 
 | 设置 | 静态链接 | 动态链接 |
 | --- | --- | --- |
 | 附加包含目录 | `dist\windows-x86_64\include` | `dist\windows-x86_64\include` |
 | 链接器 → 附加依赖项 | `libcppgis.lib` | `生成动态库.lib` |
 | 运行时文件 | 不需要 | `生成动态库.dll` 与 exe 同目录 |
-
-注意 `生成动态库.lib` 只是导入库，程序运行还需要 `生成动态库.dll`。
+| 配置 | Debug x64 | Debug x64 |
 
 ## 自行编译（Linux）
 
