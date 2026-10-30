@@ -38,30 +38,113 @@
         └── include/            对外头文件
 ```
 
-## 使用
+## 调用示例
 
-### Linux
+新建 `demo.cpp`，代码在静态链接和动态链接下完全相同：
 
-静态链接：
+```cpp
+#include <iostream>
 
-```bash
-g++ -std=c++17 -Iinclude main.cpp dist/linux-x86_64/libcppgis.a -o app
+#include "line_string.h"
+#include "point.h"
+#include "polygon.h"
+
+int main()
+{
+    // Point
+    const cppgis::Point a(0.0, 0.0);
+    const cppgis::Point b(3.0, 4.0);
+    std::cout << b.to_wkt() << '\n';
+    std::cout << "  distance(a, b) = " << a.distance_to(b) << '\n';
+    std::cout << "  a == b ? " << std::boolalpha << (a == b) << '\n';
+
+    // LineString
+    const cppgis::LineString line{{0.0, 0.0}, {3.0, 4.0}, {6.0, 0.0}};
+    std::cout << line.to_wkt() << '\n';
+    std::cout << "  points = " << line.num_points()
+              << ", length = " << line.length()
+              << ", closed = " << line.is_closed() << '\n';
+
+    // Polygon：外环 + 一个洞
+    const cppgis::Polygon polygon(
+        cppgis::LineString{{0.0, 0.0}, {10.0, 0.0}, {10.0, 10.0},
+                           {0.0, 10.0}, {0.0, 0.0}},
+        {cppgis::LineString{{2.0, 2.0}, {2.0, 4.0}, {4.0, 4.0},
+                            {4.0, 2.0}, {2.0, 2.0}}});
+    std::cout << polygon.to_wkt() << '\n';
+    std::cout << "  area = " << polygon.area()
+              << ", perimeter = " << polygon.perimeter()
+              << ", valid = " << polygon.is_valid() << '\n';
+
+    return 0;
+}
 ```
 
-动态链接：
+### Linux：静态链接
 
 ```bash
-g++ -std=c++17 -Iinclude main.cpp \
-    -Ldist/linux-x86_64 -lcppgis -Wl,-rpath,'$ORIGIN' -o app
+g++ -std=c++17 -Iinclude demo.cpp dist/linux-x86_64/libcppgis.a -o demo_static
+./demo_static
 ```
 
-运行时 `libcppgis.so` 需要放在可执行文件同目录（或加入 `LD_LIBRARY_PATH`）。
+静态链接后库代码被拷进可执行文件，运行时不需要 `libcppgis.so`：
+
+```bash
+ldd demo_static | grep cppgis   # 无输出
+```
+
+### Linux：动态链接
+
+```bash
+g++ -std=c++17 -Iinclude demo.cpp \
+    -Ldist/linux-x86_64 -lcppgis \
+    -Wl,-rpath,'$ORIGIN' -o demo_shared
+cp dist/linux-x86_64/libcppgis.so .
+./demo_shared
+```
+
+- `-Ldist/linux-x86_64`：库搜索目录
+- `-lcppgis`：链接 `libcppgis.so`
+- `-Wl,-rpath,'$ORIGIN'`：运行时到可执行文件所在目录找 `.so`
+
+也可以不用 rpath，改成运行时指定：
+
+```bash
+LD_LIBRARY_PATH=dist/linux-x86_64 ./demo_shared
+```
+
+确认运行时的依赖：
+
+```bash
+ldd demo_shared | grep cppgis
+# libcppgis.so => .../dist/linux-x86_64/libcppgis.so
+```
+
+### 预期输出
+
+两种链接方式输出一致：
+
+```
+POINT (3 4)
+  distance(a, b) = 5
+  a == b ? false
+LINESTRING (0 0, 3 4, 6 0)
+  points = 3, length = 10, closed = false
+POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))
+  area = 96, perimeter = 48, valid = true
+```
 
 ### Windows (MSVC)
 
-- 附加包含目录：`dist/windows-x86_64/include`
-- 静态链接：链接器 → 附加依赖项填 `libcppgis.lib`
-- 动态链接：链接器 → 附加依赖项填 `生成动态库.lib`，并把 `生成动态库.dll` 放到 exe 同目录
+代码相同，只改项目设置：
+
+| 设置 | 静态链接 | 动态链接 |
+| --- | --- | --- |
+| 附加包含目录 | `dist\windows-x86_64\include` | `dist\windows-x86_64\include` |
+| 链接器 → 附加依赖项 | `libcppgis.lib` | `生成动态库.lib` |
+| 运行时文件 | 不需要 | `生成动态库.dll` 与 exe 同目录 |
+
+注意 `生成动态库.lib` 只是导入库，程序运行还需要 `生成动态库.dll`。
 
 ## 自行编译（Linux）
 
