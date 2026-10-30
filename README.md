@@ -59,9 +59,7 @@ ldd demo_static | grep cppgis   # 无输出
 ### Linux：动态链接
 
 ```bash
-g++ -std=c++17 -Iinclude main.cpp \
-    -Ldist/linux-x86_64 -lcppgis \
-    -Wl,-rpath,'$ORIGIN' -o demo_shared
+g++ -std=c++17 -Iinclude main.cpp -Ldist/linux-x86_64 -lcppgis -Wl,-rpath,'$ORIGIN' -o demo_shared
 cp dist/linux-x86_64/libcppgis.so .
 ./demo_shared
 ```
