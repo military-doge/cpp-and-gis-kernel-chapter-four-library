@@ -27,6 +27,7 @@
 │   ├── point.cpp
 │   ├── line_string.cpp
 │   └── polygon.cpp
+├── main.cpp                    调用示例
 └── dist/                       预编译产物
     ├── linux-x86_64/
     │   ├── libcppgis.a         静态库
@@ -40,7 +41,7 @@
 
 ## 调用示例
 
-新建 `demo.cpp`，代码在静态链接和动态链接下完全相同：
+本仓库根目录的 `main.cpp` 即调用示例，静态链接和动态链接共用同一份代码：
 
 ```cpp
 #include <iostream>
@@ -83,7 +84,7 @@ int main()
 ### Linux：静态链接
 
 ```bash
-g++ -std=c++17 -Iinclude demo.cpp dist/linux-x86_64/libcppgis.a -o demo_static
+g++ -std=c++17 -Iinclude main.cpp dist/linux-x86_64/libcppgis.a -o demo_static
 ./demo_static
 ```
 
@@ -96,7 +97,7 @@ ldd demo_static | grep cppgis   # 无输出
 ### Linux：动态链接
 
 ```bash
-g++ -std=c++17 -Iinclude demo.cpp \
+g++ -std=c++17 -Iinclude main.cpp \
     -Ldist/linux-x86_64 -lcppgis \
     -Wl,-rpath,'$ORIGIN' -o demo_shared
 cp dist/linux-x86_64/libcppgis.so .
@@ -143,7 +144,7 @@ POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))
 
 ```bat
 cl /nologo /std:c++17 /EHsc /MDd /I "dist\windows-x86_64\include" ^
-   demo.cpp "dist\windows-x86_64\libcppgis.lib" /Fe:demo_static.exe
+   main.cpp "dist\windows-x86_64\libcppgis.lib" /Fe:demo_static.exe
 demo_static.exe
 ```
 
@@ -151,7 +152,7 @@ demo_static.exe
 
 ```bat
 cl /nologo /std:c++17 /EHsc /MDd /I "dist\windows-x86_64\include" ^
-   demo.cpp "dist\windows-x86_64\生成动态库.lib" /Fe:demo_shared.exe
+   main.cpp "dist\windows-x86_64\生成动态库.lib" /Fe:demo_shared.exe
 copy /Y "dist\windows-x86_64\生成动态库.dll" .
 demo_shared.exe
 ```
