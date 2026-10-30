@@ -1,0 +1,35 @@
+# ---- 本地编译产物（dist/ 下已提交的发行库不受影响）----
+/*.o
+/*.obj
+/*.so
+/*.a
+/*.dll
+/*.lib
+/*.exe
+/*.pdb
+/*.ilk
+/*.exp
+/app
+/a.out
+/demo_static
+/demo_shared
+/main
+/main_shared
+
+# ---- 构建目录 ----
+/build/
+/out/
+/x64/
+/Debug/
+/Release/
+
+# ---- IDE / 编辑器 ----
+.vs/
+.vscode/
+*.vcxproj.user
+*.user
+*.suo
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
